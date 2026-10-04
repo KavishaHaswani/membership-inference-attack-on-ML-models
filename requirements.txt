@@ -1,7 +1,11 @@
-transformers>=4.40
-torch>=2.1
-datasets
-scikit-learn
-numpy
-pandas
-matplotlib
+legacy-cgi==2.6.4
+httpx==0.28.1
+pyarrow==18.1.0
+transformers==4.49.0
+torch==2.6.0
+datasets==3.2.0
+scikit-learn==1.6.1
+numpy==2.2.3
+pandas==2.2.3
+matplotlib==3.10.0
+sentencepiece>=0.2.1    # needed by the T5-based paraphraser

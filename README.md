@@ -11,7 +11,7 @@ See `mia_project_plan.md` (one directory up) for the full technical plan.
 ## Setup
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt   --prefer-binary
 ```
 
 Requires a HuggingFace account/internet access to download:
@@ -29,6 +29,11 @@ python run_experiment.py \
     --model_id EleutherAI/pythia-1.4b \
     --lengths 32 64 128 \
     --save_raw_scores
+
+python run_paraphrase_experiment.py --model_id EleutherAI/pythia-1.4b --lengths 128
+
+python run_paraphrase_experiment.py --lengths 128
+
 ```
 
 This writes:
@@ -42,6 +47,15 @@ python plot_results.py --length 128
 ```
 
 Output: `results/roc_length128.png`
+
+If file crashes in the middle of downloading a model from hugging face:
+
+```bash
+# Stop the process in case it is still running
+Get-Process python* | Stop-Process -Force
+# Delete lock file for model
+Remove-Item -Recurse -Force "$env:USERPROFILE\.cache\huggingface\hub\models--humarin--chatgpt_paraphraser_on_T5_base"
+```
 
 ## Notes
 

@@ -20,11 +20,14 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 class PythiaWrapper:
     def __init__(self, model_id: str = "EleutherAI/pythia-1.4b", device: str = None):
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        print(f"  -> downloading/loading tokenizer for {model_id} ...")
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
+        print(f"  -> downloading/loading model weights for {model_id} (this can take a while on first run) ...")
         self.model = AutoModelForCausalLM.from_pretrained(
             model_id,
             torch_dtype=torch.float16 if self.device == "cuda" else torch.float32,
         ).to(self.device)
+        print(f"  -> {model_id} loaded on {self.device}")
         self.model.eval()
 
     @torch.no_grad()

@@ -14,14 +14,18 @@ Usage:
     python run_experiment.py --model_id EleutherAI/pythia-1.4b --lengths 32 64 128
 """
 
+import os
 import argparse
 import pandas as pd
 from tqdm import tqdm
 
-from data_loader import load_wikimia
+# IMPORTANT: import transformers-based modules BEFORE data_loader (which
+# imports `datasets`/pyarrow). See run_paraphrase_experiment.py for why --
+# reversing this order can crash with an access violation on Windows.
 from model_utils import PythiaWrapper
 from attacks import ATTACK_REGISTRY
 from evaluate import evaluate_all_methods
+from data_loader import load_wikimia
 
 
 def run_for_length(wrapper: PythiaWrapper, length: int) -> pd.DataFrame:

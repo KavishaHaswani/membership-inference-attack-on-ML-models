@@ -42,18 +42,6 @@ def load_wikimia(length: int = 128, split: str = "WikiMIA_length" ):
     return examples
 
 
-def split_members(data: list) -> tuple:
-    """
-    Splits a loaded WikiMIA list into (members, non_members).
-    Used by run_paraphrase_experiment.py, which only paraphrases members
-    -- non-members stay as-is, since we're testing whether paraphrasing
-    lets a genuine member text "slip past" the attack.
-    """
-    members = [e for e in data if e["label"] == 1]
-    non_members = [e for e in data if e["label"] == 0]
-    return members, non_members
-
-
 if __name__ == "__main__":
     # quick smoke test
     data = load_wikimia(length=128)
