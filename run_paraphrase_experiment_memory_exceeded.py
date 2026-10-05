@@ -21,14 +21,19 @@ Usage:
 
 import argparse
 import os
+
+# MUST come before pandas/datasets -- loads the tokenizers native extension
+# first, which avoids a silent access-violation crash on Windows. See the
+# module docstring in import_order.py.
+import import_order  # noqa: F401
 import pandas as pd
 from tqdm import tqdm
 
-from data_loader import load_wikimia, split_members
 from model_utils import PythiaWrapper
 from paraphrase import Paraphraser
 from attacks import ATTACK_REGISTRY
 from evaluate import evaluate_all_methods
+from data_loader import load_wikimia, split_members
 
 
 def score_examples(wrapper: PythiaWrapper, examples: list):

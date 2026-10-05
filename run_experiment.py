@@ -16,12 +16,14 @@ Usage:
 
 import os
 import argparse
+
+# MUST come before pandas/datasets -- loads the tokenizers native extension
+# first, which avoids a silent access-violation crash on Windows. See the
+# module docstring in import_order.py.
+import import_order  # noqa: F401
 import pandas as pd
 from tqdm import tqdm
 
-# IMPORTANT: import transformers-based modules BEFORE data_loader (which
-# imports `datasets`/pyarrow). See run_paraphrase_experiment.py for why --
-# reversing this order can crash with an access violation on Windows.
 from model_utils import PythiaWrapper
 from attacks import ATTACK_REGISTRY
 from evaluate import evaluate_all_methods
@@ -62,7 +64,9 @@ def run_for_length(wrapper: PythiaWrapper, length: int) -> pd.DataFrame:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model_id", type=str, default="EleutherAI/pythia-1.4b")
+    parser.add_argument("--model_id", type=str, default="EleutherAI/pythia-410m",
+                         help="Default lowered to 410m to fit CPU / small-VRAM GPUs. "
+                              "Use pythia-1.4b or larger only if you have more memory.")
     parser.add_argument("--lengths", type=int, nargs="+", default=[32, 64, 128])
     parser.add_argument("--out_csv", type=str, default="results/results.csv")
     parser.add_argument("--save_raw_scores", action="store_true",

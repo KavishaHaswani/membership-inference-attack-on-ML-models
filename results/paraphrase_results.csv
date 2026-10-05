@@ -1,0 +1,5 @@
+length,method,AUROC_before,AUROC_after,AUROC_drop,TPR@5%FPR_before,TPR@5%FPR_after,TPR@5%FPR_drop
+128,loss,59.63,46.39,13.24,9.35,2.88,6.47
+128,zlib,62.52,2.88,59.64,12.95,0.0,12.95
+128,mink,60.97,52.6,8.37,7.91,7.91,0.0
+128,minkpp,59.29,60.81,-1.52,7.91,20.86,-12.95

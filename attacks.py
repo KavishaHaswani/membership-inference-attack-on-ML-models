@@ -51,24 +51,15 @@ def mink_attack(stats: dict, k: float = 0.2) -> float:
 def minkpp_attack(stats: dict, k: float = 0.2) -> float:
     """
     Zhang et al., 2024 (Min-K%++).
-    Calibrates each token's log-prob by the mean (mu) and std (sigma) of the
-    model's own predicted next-token distribution at that position, then
-    averages the k% lowest-scoring tokens (same aggregation as Min-K%).
+    Uses per-token calibrated scores precomputed in model_utils.score_text():
 
     token_score_t = (log p(x_t | x_<t) - mu_t) / sigma_t
         mu_t    = E_{z ~ p(.|x_<t)} [log p(z|x_<t)]
         sigma_t = sqrt(E_{z ~ p(.|x_<t)} [(log p(z|x_<t) - mu_t)^2])
+
+    Then averages the k% lowest-scoring tokens (same aggregation as Min-K%).
     """
-    token_log_probs = stats["token_log_probs"]   # [T]
-    log_probs = stats["log_probs"]                 # [T, V]
-    probs = stats["probs"]                           # [T, V]
-
-    mu = (probs * log_probs).sum(-1)                                   # [T]
-    sigma_sq = (probs * log_probs.square()).sum(-1) - mu.square()  # [T]
-    sigma_sq = sigma_sq.clamp(min=1e-8)  # numerical safety
-
-    token_scores = (token_log_probs - mu) / sigma_sq.sqrt()       # [T]
-
+    token_scores = stats["minkpp_token_scores"]  # [T]
     n = max(1, int(len(token_scores) * k))
     lowest_k, _ = torch.sort(token_scores)
     return lowest_k[:n].mean().item()

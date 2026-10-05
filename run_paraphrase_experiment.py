@@ -21,15 +21,14 @@ Usage:
 
 import os
 import argparse
+
+# MUST come before pandas/datasets -- loads the tokenizers native extension
+# first, which avoids a silent access-violation crash on Windows. See the
+# module docstring in import_order.py.
+import import_order  # noqa: F401
 import pandas as pd
 from tqdm import tqdm
 
-# IMPORTANT: import transformers-based modules (model_utils, paraphrase)
-# BEFORE data_loader (which imports `datasets`, pulling in pyarrow).
-# On Windows, importing `datasets` first can cause a native DLL conflict
-# with the tokenizers library, crashing with no Python-level error
-# (exit code -1073741819 / access violation). Importing transformers
-# first avoids it.
 from model_utils import PythiaWrapper
 from paraphrase import Paraphraser
 from attacks import ATTACK_REGISTRY

@@ -8,4 +8,5 @@ scikit-learn==1.6.1
 numpy==2.2.3
 pandas==2.2.3
 matplotlib==3.10.0
+tqdm>=4.66.0
 sentencepiece>=0.2.1    # needed by the T5-based paraphraser

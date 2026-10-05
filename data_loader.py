@@ -6,32 +6,35 @@ Each example has:
     - "input": the text
     - "label": 1 = member (seen during pretraining), 0 = non-member
 
-WikiMIA has three length-based configs: 32, 64, 128 tokens.
-We only use the "original" (verbatim) setting -- WikiMIA does not separate
-this into a distinct config; the paraphrased version is a different dataset
-release, so loading the base configs below already gives you the original
-setting.
+WikiMIA exposes length variants as *splits* (not configs):
+WikiMIA_length32 / 64 / 128 / 256. We use the verbatim setting only.
 """
 
+# IMPORTANT: `transformers` must be imported BEFORE `datasets` (which pulls in
+# pyarrow). On Windows, loading pyarrow's DLLs before the tokenizers native
+# extension corrupts the process: the next AutoTokenizer.from_pretrained()
+# dies with an access violation and NO Python traceback (exit code
+# -1073741819 / 0xC0000005). Importing transformers first loads tokenizers
+# safely and avoids it. Doing it here means every script is safe regardless of
+# its own import order.
+import transformers  # noqa: F401
 from datasets import load_dataset
 
 
-def load_wikimia(length: int = 128, split: str = "WikiMIA_length" ):
+def load_wikimia(length: int = 128):
     """
     Load a WikiMIA split by sequence length.
 
     Args:
-        length: one of {32, 64, 128}
-        split: internal, do not change
+        length: one of {32, 64, 128, 256}
 
     Returns:
         List of dicts: [{"text": str, "label": int}, ...]
     """
-    if length not in (32, 64, 128):
-        raise ValueError("length must be one of 32, 64, 128")
+        raise ValueError("length must be one of 32, 64, 128, 256")
 
-    config_name = f"WikiMIA_length{length}"
-    ds = load_dataset("swj0419/WikiMIA", config_name, split="WikiMIA")
+    # HF dataset layout (current): single default config, length as split name.
+    ds = load_dataset("swj0419/WikiMIA", split=f"WikiMIA_length{length}")
 
     examples = []
     for row in ds:

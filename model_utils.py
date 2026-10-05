@@ -4,13 +4,16 @@ model_utils.py
 Loads a Pythia model and runs a single forward pass per text, extracting
 everything needed by all four attack methods:
     - token_log_probs: log-prob the model assigned to each actual next token
-    - log_probs: full log-softmax distribution over the vocab, per position
-    - probs: full softmax distribution over the vocab, per position
+    - minkpp_token_scores: per-token Min-K%++ calibrated scores
+    - n_tokens: number of scored token positions
 
 This is deliberately factored out so the forward pass is run exactly once
 per example, shared across all attack methods (matches the computational
 note in Zhang et al., 2024, Appendix A: all methods besides Ref/Neighbor
 cost the same single forward pass).
+
+Full vocab distributions are computed on-device for Min-K%++ then discarded,
+so we never materialize [T, V] tensors on CPU (avoids OOM on longer texts).
 """
 
 import torch
@@ -23,9 +26,10 @@ class PythiaWrapper:
         print(f"  -> downloading/loading tokenizer for {model_id} ...")
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
         print(f"  -> downloading/loading model weights for {model_id} (this can take a while on first run) ...")
+        dtype = torch.float16 if self.device == "cuda" else torch.float32
         self.model = AutoModelForCausalLM.from_pretrained(
             model_id,
-            torch_dtype=torch.float16 if self.device == "cuda" else torch.float32,
+            torch_dtype=dtype,
         ).to(self.device)
         print(f"  -> {model_id} loaded on {self.device}")
         self.model.eval()
@@ -37,10 +41,9 @@ class PythiaWrapper:
         attack methods.
 
         Returns:
-            token_log_probs: FloatTensor [T-1]
-            log_probs:       FloatTensor [T-1, V]
-            probs:           FloatTensor [T-1, V]
-            n_tokens:        int, T-1 (number of scored token positions)
+            token_log_probs:     FloatTensor [T-1]
+            minkpp_token_scores: FloatTensor [T-1]
+            n_tokens:            int, T-1 (number of scored token positions)
         """
         input_ids = self.tokenizer(text, return_tensors="pt").input_ids.to(self.device)
 
@@ -58,17 +61,22 @@ class PythiaWrapper:
             dim=-1, index=targets.unsqueeze(-1)
         ).squeeze(-1)                                        # [T-1]
 
+        # Min-K%++ calibration (Zhang et al., 2024) — keep only the [T] scores.
+        mu = (probs * log_probs).sum(-1)
+        sigma_sq = (probs * log_probs.square()).sum(-1) - mu.square()
+        sigma_sq = sigma_sq.clamp(min=1e-8)
+        minkpp_token_scores = (token_log_probs - mu) / sigma_sq.sqrt()
+
         return {
             "token_log_probs": token_log_probs.float().cpu(),
-            "log_probs": log_probs.float().cpu(),
-            "probs": probs.float().cpu(),
+            "minkpp_token_scores": minkpp_token_scores.float().cpu(),
             "n_tokens": token_log_probs.shape[0],
         }
 
 
 if __name__ == "__main__":
     # quick smoke test (requires HF access + model download)
-    wrapper = PythiaWrapper(model_id="EleutherAI/pythia-1.4b")
+    wrapper = PythiaWrapper(model_id="EleutherAI/pythia-70m")
     stats = wrapper.score_text("The quick brown fox jumps over the lazy dog.")
     print("n_tokens:", stats["n_tokens"])
     print("mean token log-prob (≈ negative loss):", stats["token_log_probs"].mean().item())
