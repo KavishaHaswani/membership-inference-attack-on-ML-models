@@ -31,6 +31,7 @@ def load_wikimia(length: int = 128):
     Returns:
         List of dicts: [{"text": str, "label": int}, ...]
     """
+    if length not in (32, 64, 128, 256):
         raise ValueError("length must be one of 32, 64, 128, 256")
 
     # HF dataset layout (current): single default config, length as split name.
