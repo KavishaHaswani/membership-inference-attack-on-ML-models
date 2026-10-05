@@ -25,15 +25,14 @@ Implement and evaluate four membership inference attack (MIA) scoring methods ag
 - AUROC and TPR@5%FPR evaluation, reported per sequence length (32/64/128)
 
 **Out of scope (explicitly, to bound the project):**
-- Paraphrased WikiMIA setting
 - MIMIR benchmark
 - Reference-model-based attacks (Ref, Neighbor) — require extra LLM inference, not needed for the core comparison
 - Shadow models, fine-tuning attacks, federated/multimodal settings
-- Any new/novel method — this is a reproduction project
 
 ## 4. Environment Setup
 
 ### 4.1 Compute
+- Originally ran on cpu-only models.
 - Single GPU sufficient (T4/A10, e.g. free-tier Colab) for Pythia up to ~2.8B
 - Pythia-6.9B optional, needs a bigger GPU (A100) or 8-bit/4-bit quantized loading
 
