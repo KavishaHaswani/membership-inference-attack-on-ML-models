@@ -134,6 +134,12 @@ def main():
     else:
         print("\n  Denominators are comparable; zlib's collapse needs a loss-term explanation.")
 
+    print("\nNOTE: this script reports LENGTH/COMPRESSIBILITY diagnostics only -- it does")
+    print("      not load Pythia and so cannot compute an AUROC. For the actual before/")
+    print("      after numbers and the length-controlled control test, run:")
+    print("          python -u verify_zlib_confound.py --length 128")
+    print("      which writes the compound report to results/zlib_confound_report.csv.")
+
     # --- Show the most extreme cases for manual inspection ---
     print("\n=== 3 examples with the BIGGEST drop in compression ratio (paraphrase vs original) ===")
     df["ratio_change"] = df["para_compression_ratio"] - df["orig_compression_ratio"]

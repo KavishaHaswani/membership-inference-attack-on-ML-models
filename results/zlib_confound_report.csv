@@ -1,0 +1,25 @@
+section,metric,value,note
+1_reported,zlib_AUROC_before,62.52,"results/paraphrase_results.csv, args.length=128, model=EleutherAI/pythia-410m"
+1_reported,zlib_AUROC_after,2.88,"raw zlib, paraphrased members vs original non-members"
+1_reported,zlib_AUROC_drop,59.64,reported as a robustness result
+2_length,n_members_profiled,50.0,from results/zlib_diagnostic.csv
+2_length,orig_char_len_mean,810.9,member source text
+2_length,para_char_len_mean,472.58,after paraphrasing
+2_length,para_char_len_ratio,0.583,paraphraser condenses; all sampled paraphrases are shorter
+2_length,nonmember_clen_mean,448.288,untouched control class
+2_length,member_clen_orig_mean,457.72,members before paraphrasing
+2_length,member_clen_para_mean,295.9,members after paraphrasing
+2_length,denominator_ratio_baseline,1.021,clen_member_orig / clen_nonmember; ~1.0 means length carries no label signal
+2_length,denominator_ratio_after_paraphrase,0.66,clen_member_para / clen_nonmember; deviation from 1.0 is a free label feature
+2_length,denominator_shift_pct,33.993,"confound magnitude, since zlib score = -loss / clen"
+3_control,AUROC_A_original_raw_zlib,57.71,baseline reproduction
+3_control,AUROC_B_paraphrased_raw_zlib,3.71,reproduces the reported collapse on this subset
+3_control,AUROC_C_paraphrased_rate_normalized_zlib,0.681,"NOT a valid fix: paraphrases are less compressible per char, new confound"
+3_control,AUROC_D_paraphrased_length_matched_zlib,55.0,"identical members to B, only the non-member length distribution differs"
+3_control,AUROC_loss_original,54.77,no length term; uncontaminated by the confound
+3_control,AUROC_loss_paraphrased,47.62,no length term; uncontaminated by the confound
+4_verdict,points_explained_by_length,51.29,D - B: AUROC recovered by removing the length confound; compare with zlib_drop_as_reported
+4_verdict,zlib_drop_length_controlled,2.71,A - D: zlib's real degradation under paraphrasing
+4_verdict,zlib_drop_as_reported,54.0,A - B: what the naive comparison claims
+4_verdict,pct_of_drop_explained_by_length,94.981,length-confound points as a share of the naive drop
+4_verdict,loss_drop,7.15,A_loss - B_loss: the honest effect of changing the wording
